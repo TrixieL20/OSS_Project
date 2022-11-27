@@ -10,6 +10,7 @@ class Main(QDialog):
         main_layout = QVBoxLayout()
 
         ### 각 위젯을 배치할 레이아웃을 미리 만들어 둠
+        ### 크게 입력 창과 숫자, 기호 버튼을 main_layout에 배열하려 함
         layout_operation = QHBoxLayout()
         layout_clear_equal = QHBoxLayout()
         layout_number = QGridLayout()
