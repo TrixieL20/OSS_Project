@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtWidgets import *
+
 class Main(QDialog):
     def __init__(self):
         super().__init__()
