@@ -169,6 +169,14 @@ class Main(QDialog):
                 elif token == '/':
                     rv = stack.pop()
                     stack.append(stack.pop()/rv)
+                elif token == 'r':
+                    stack.append(stack.pop()**(1/2))
+                elif token == 'v':
+                    stack.append(1/stack.pop())
+                elif token == '^':
+                    stack.append(stack.pop()**2)
+                elif token == 'm':
+                    stack.append(-stack.pop())
                 else:
                     stack.append(int(token))
             return stack.pop()
