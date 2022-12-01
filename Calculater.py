@@ -118,7 +118,7 @@ class Main(QDialog):
         equation += str(num)
         self.equation.setText(equation)
 
-    #연산자 버튼 클릭 시 화면에 숫자 보여주고 equation 문자열에 연산자 추가
+    #연산자 버튼 클릭 시 화면 지우고 equation 문자열에 연산자 추가
     def button_operation_clicked(self, operation):
         equation = self.equation.text()
         equation += operation
