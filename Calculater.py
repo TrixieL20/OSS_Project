@@ -16,6 +16,7 @@ class Main(QDialog):
 
         #수식 입력과 답 출력을 위한 LineEdit 위젯을 하나의 창으로 생성
         self.equation = QLineEdit("")
+        self.equation_memory = QLineEdit("")
 
         #layout_equation_solution 레이아웃에 수식, 답 위젯을 추가
         layout_equation_solution.addRow(self.equation)
@@ -116,20 +117,20 @@ class Main(QDialog):
     def number_button_clicked(self, num):
         equation = self.equation.text()
         equation += str(num)
+        self.equation_memory.insert(str(num))
         self.equation.setText(equation)
 
-    #연산자 버튼 클릭 시 화면 지우고 equation 문자열에 연산자 추가
+    #연산자 버튼 클릭 시 화면 지우고 equation_memory 문자열에 연산자 추가
     def button_operation_clicked(self, operation):
-        equation = self.equation.text()
-        equation += operation
-        self.equation.setText(equation)
+        self.equation_memory.insert(operation)
+        self.equation.setText('')
 
     #'='버튼 누르면 스택을 이용해 후위표기법으로 변환 후 계산해 결과 보여줌
     def button_equal_clicked(self):
         #나중에 계산 시 리스트로 equation을 만들어야 하는데 연산자의 문자열 길이가 1보다 크면 하나의 연산자를 지칭해도
         #하나의 연산자로 생각하는데 문제가 생길 수 있으므로 아래와 같이 문자열 길이가 1보다 큰 연산자를 다른 문자열로 바꿔줌
         #'root' -> 'r', '^2'(제곱) -> '^', '1/x' -> 'v', '+/-' -> 'm'
-        equation = self.equation.text()
+        equation = self.equation_memory.text()
         equation = equation.replace("root", "r")
         equation = equation.replace("^2", "^")
         equation = equation.replace("1/x", "v")
@@ -184,8 +185,10 @@ class Main(QDialog):
         self.equation.setText(solution) #계산 결과 입력창에 보여줌
 
     #'C', 'CE' button 클릭 시 화면 지워줌
+    #'C', 'CE' button 클릭 시 저장된 내용 지움
     def button_clear_clicked(self):
         self.equation.setText("")
+        self.equation_memory.setText("")
 
     #backspace 버튼 클릭 시 문자열 하나씩 지움
     def button_backspace_clicked(self):
