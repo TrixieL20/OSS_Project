@@ -15,7 +15,7 @@ class Main(QDialog):
         layout_equation_solution = QFormLayout()
 
         #수식 입력과 답 출력을 위한 LineEdit 위젯을 하나의 창으로 생성
-        #값을 저장하기 위한 LineEdit 위젯 생성 -> equation_memory
+        #연산자 버튼 클릭 시 값을 저장하기 위한 LineEdit 위젯 생성 -> equation_memory
         self.equation = QLineEdit("")
         self.equation_memory = QLineEdit("")
 
@@ -80,7 +80,7 @@ class Main(QDialog):
             number_button_dict[number].clicked.connect(lambda state, num = number:
                                                        self.number_button_clicked(num))
 
-            #숫자 버튼을 기존의 코드 형식을 유지하면서도 윈도우 표준 계산기의 배열과 동일하게 하기 위해 아래와 같이 구성
+            #기존의 코드 형식을 유지하면서도 윈도우 표준 계산기의 숫자 버튼 배열과 동일하게 하기 위해 아래와 같이 구성
             if number >0:
                 x,y = divmod(number-1, 3)
                 if (x == 0):
@@ -114,7 +114,7 @@ class Main(QDialog):
     #functions#
     ###########
 
-    #숫자 버튼 클릭 시 화면에 숫자 보여주고 equation 문자열에 숫자 추가
+    #숫자 버튼 클릭 시 화면에 숫자 보여주고 equation, equation_memory 문자열에 숫자 추가
     def number_button_clicked(self, num):
         equation = self.equation.text()
         equation += str(num)
@@ -136,14 +136,55 @@ class Main(QDialog):
         equation = equation.replace("^2", "^")
         equation = equation.replace("1/x", "v")
         equation = equation.replace("+/-", "m")
+        oper_num = equation.count('r') + equation.count('v') + equation.count('^') + equation.count('m')
 
         #연산자 기준으로 나눠서 리스트 만듦
-        list_tokens = list(equation)
+        list_postfix = list(equation)
+        list_tokens = []
         lst = []    #후위표기법으로 나타낸 식 저장할 리스트
         stack = []  #스택 생성
-        prior = {'r':4, '^':4, 'v':4, 'm':4, '*':3,'/':3,'+':2,'-':2,'(':1} #우선 순위 결정
+        num = ''
+        #입력된 숫자의 길이가 2이상이면 list(equation) 코드를 통해 한자리씩 나누어 리스트에 들어가
+        #계산이 제대로 되지 않아서 연속으로 입력된 숫자끼리 같은 인덱스의 배열에 위치하게 함
+
+        for i in range(len(list_postfix)):
+            if list_postfix[i].isdigit():
+                num += list_postfix[i]
+                
+                if (i == (len(list_postfix) - 2)) and (list_postfix[len(list_postfix) - 1].isdecimal()):
+                    num += list_postfix[i + 1]
+                    list_tokens.append(num)
+
+            else:
+                if (list_postfix[i] == 'r'):
+                    list_tokens.append(str(float(num)**(1/2)))
+                    del list_postfix[i]
+                    
+                elif (list_postfix[i] == 'v'):
+                    list_tokens.append(str(1 / int(num)))
+                    del list_postfix[i]
+
+                elif (list_postfix[i] == '^'):
+                    list_tokens.append(str(float(num)**2))
+                    del list_postfix[i]
+
+                elif (list_postfix[i] == 'm'):
+                    list_tokens.append(str(-float(num)))
+                    del list_postfix[i]
+                else:
+                    list_tokens.append(num)
+                    list_tokens.append(list_postfix[i])
+                    num = ''
+
+                    if  i == len(list_postfix) - 2:
+                        i += 1
+                        list_tokens.append(list_postfix[i])
+                        
+        prior = {'r':4, '^':4, 'v':4, 'm':4, '%':3, '*':3,'/':3,'+':2,'-':2,'(':1} #우선 순위 결정
         for n in range(len(list_tokens)):   #토큰 길이만큼 반복
-            if list_tokens[n].isdecimal():  #token이 숫자이면 리스트에 추가
+            if '.' in list_tokens[n]:   #token이 float이면 리스트에 추가
+                lst.append(list_tokens[n])
+            elif list_tokens[n].isdigit():  #token이 숫자이면 리스트에 추가
                 lst.append(list_tokens[n])
             elif list_tokens[n] == '(': #'('이면 stack에 추가
                     stack.append(list_tokens[n])
@@ -171,19 +212,15 @@ class Main(QDialog):
                 elif token == '/':
                     rv = stack.pop()
                     stack.append(stack.pop()/rv)
-                elif token == 'r':
-                    stack.append(stack.pop()**(1/2))
-                elif token == 'v':
-                    stack.append(1/stack.pop())
-                elif token == '^':
-                    stack.append(stack.pop()**2)
-                elif token == 'm':
-                    stack.append(-stack.pop())
+                elif token == '%':
+                    rv = stack.pop()
+                    stack.append(stack.pop()//rv)
                 else:
-                    stack.append(int(token))
+                    stack.append(float(token))
             return stack.pop()
         solution = str(Calculate(lst))
         self.equation.setText(solution) #계산 결과 입력창에 보여줌
+        self.equation_memory.setText(solution)
 
     #'C', 'CE' button 클릭 시 화면 지워줌
     #'C', 'CE' button 클릭 시 저장된 내용 지움
@@ -192,10 +229,14 @@ class Main(QDialog):
         self.equation_memory.setText("")
 
     #backspace 버튼 클릭 시 문자열 하나씩 지움
+    #equation_memory를 추가하고 나서 기능이 이전과 같이 동작할 수 있도록 함
     def button_backspace_clicked(self):
         equation = self.equation.text()
+        equation_memory = self.equation_memory.text()
         equation = equation[:-1]
         self.equation.setText(equation)
+        self.equation_memory.setText('')
+        self.equation_memory.insert(equation_memory[:-1])
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
