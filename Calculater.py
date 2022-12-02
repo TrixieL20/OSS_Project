@@ -15,6 +15,7 @@ class Main(QDialog):
         layout_equation_solution = QFormLayout()
 
         #수식 입력과 답 출력을 위한 LineEdit 위젯을 하나의 창으로 생성
+        #값을 저장하기 위한 LineEdit 위젯 생성 -> equation_memory
         self.equation = QLineEdit("")
         self.equation_memory = QLineEdit("")
 
